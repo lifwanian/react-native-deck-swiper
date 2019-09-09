@@ -50,6 +50,7 @@ class Swiper extends Component {
     this.state = {
       ...calculateCardIndexes(props.cardIndex, props.cards),
       pan: new Animated.ValueXY(),
+      scaleValue: new Animated.Value(0),
       cards: props.cards,
       previousCardX: new Animated.Value(props.previousCardDefaultPositionX),
       previousCardY: new Animated.Value(props.previousCardDefaultPositionY),
@@ -605,7 +606,9 @@ class Swiper extends Component {
     const opacity = this.props.animateOverlayLabelsOpacity
       ? this.interpolateOverlayLabelsOpacity()
       : 1
-    return [this.props.overlayLabelWrapperStyle, dynamicWrapperStyle, { opacity }]
+    // Custom - Added by rviera
+    const scale = this.props.animateOverlayLabelsScale && this.interpolateOverlayLabelsScale()
+    return [this.props.overlayLabelWrapperStyle, dynamicWrapperStyle, { opacity }, { transform: [{ scale }] }]
   }
 
   calculateSwipableCardStyle = () => {
@@ -691,6 +694,27 @@ class Swiper extends Component {
     }
 
     return opacity
+  }
+
+  // Custom - Added by rviera
+  interpolateOverlayLabelsScale = () => {
+    const animatedValueX = Math.abs(this._animatedValueX)
+    const animatedValueY = Math.abs(this._animatedValueY)
+    let scale
+
+    if (this._animatedValueX > 0) { // Is swiping right
+      scale = this.state.pan.x.interpolate({
+        inputRange: this.props.inputOverlayLabelsScaleRight,
+        outputRange: this.props.outputOverlayLabelsScaleRight
+      })
+    } else { // Is swiping left
+      scale = this.state.pan.x.interpolate({
+        inputRange: this.props.inputOverlayLabelsScaleLeft,
+        outputRange: this.props.outputOverlayLabelsScaleLeft
+      })
+    }
+
+    return scale
   }
 
   interpolateRotation = () =>
