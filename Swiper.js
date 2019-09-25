@@ -15,6 +15,7 @@ const LABEL_TYPES = {
   BOTTOM: 'bottom'
 }
 const SWIPE_MULTIPLY_FACTOR = 4.5
+const CENTER_REFERENCE = 11
 
 const calculateCardIndexes = (firstCardIndex, cards) => {
   firstCardIndex = firstCardIndex || 0
@@ -699,15 +700,14 @@ class Swiper extends Component {
   // Custom - Added by rviera
   interpolateOverlayLabelsScale = () => {
     const animatedValueX = Math.abs(this._animatedValueX)
-    const animatedValueY = Math.abs(this._animatedValueY)
     let scale
 
-    if (this._animatedValueX > 0) { // Is swiping right
+    if (animatedValueX <= CENTER_REFERENCE) { // Is swiping right
       scale = this.state.pan.x.interpolate({
         inputRange: this.props.inputOverlayLabelsScaleRight,
         outputRange: this.props.outputOverlayLabelsScaleRight
       })
-    } else { // Is swiping left
+    } else if(animatedValueX > CENTER_REFERENCE) { // Is swiping left
       scale = this.state.pan.x.interpolate({
         inputRange: this.props.inputOverlayLabelsScaleLeft,
         outputRange: this.props.outputOverlayLabelsScaleLeft
