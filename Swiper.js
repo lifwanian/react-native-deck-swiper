@@ -15,7 +15,7 @@ const LABEL_TYPES = {
   BOTTOM: 'bottom'
 }
 const SWIPE_MULTIPLY_FACTOR = 4.5
-const CENTER_REFERENCE = 11
+const CENTER_REFERENCE = 10
 
 const calculateCardIndexes = (firstCardIndex, cards) => {
   firstCardIndex = firstCardIndex || 0
@@ -61,6 +61,7 @@ class Swiper extends Component {
       slideGesture: false,
       swipeBackXYPositions: [],
       isSwipingBack: false,
+      verticalSwipeing: false,
       ...rebuildStackAnimatedValues(props)
     }
 
@@ -293,36 +294,49 @@ class Swiper extends Component {
     })
   }
 
+  // This method was modified in order to have a specific behavior on swipe top or bottom
   getOnSwipeDirectionCallback = (animatedValueX, animatedValueY) => {
     const {
       onSwipedLeft,
       onSwipedRight,
-      onSwipedTop,
-      onSwipedBottom
+      // onSwipedTop,
+      // onSwipedBottom
     } = this.props
+    const { labelType } = this.state; // Added by rviera
 
-    const {
-      isSwipingLeft,
-      isSwipingRight,
-      isSwipingTop,
-      isSwipingBottom
-    } = this.getSwipeDirection(animatedValueX, animatedValueY)
+    // Commented by rviera
+    // const {
+    //   isSwipingLeft,
+    //   isSwipingRight,
+    //   isSwipingTop,
+    //   isSwipingBottom
+    // } = this.getSwipeDirection(animatedValueX, animatedValueY)
 
-    if (isSwipingRight) {
+    // This code is to implement the skip save behavior on going top or bottom (rviera)
+    if (labelType === 'left') {
+      return onSwipedLeft
+    } else if (labelType === 'right') {
       return onSwipedRight
     }
 
-    if (isSwipingLeft) {
-      return onSwipedLeft
-    }
+    // The below code was the original and I have to comment this in order to implement
+    //    a custom behavior in the swipe cards action (rviera)
 
-    if (isSwipingTop) {
-      return onSwipedTop
-    }
+    // if (isSwipingRight) {
+    //   return onSwipedRight
+    // }
 
-    if (isSwipingBottom) {
-      return onSwipedBottom
-    }
+    // if (isSwipingLeft) {
+    //   return onSwipedLeft
+    // }
+
+    // if (isSwipingTop) {
+    //   return onSwipedTop
+    // }
+
+    // if (isSwipingBottom) {
+    //   return onSwipedBottom
+    // }
   }
 
   mustDecrementCardIndex = (animatedValueX, animatedValueY) => {
@@ -601,14 +615,18 @@ class Swiper extends Component {
   }
 
   calculateOverlayLabelWrapperStyle = () => {
-    const dynamicStyle = this.props.overlayLabels[this.state.labelType].style
+    const { labelType, verticalSwipeing } = this.state;
+    const dynamicStyle = this.props.overlayLabels[this.state.labelType].style;
     const dynamicWrapperStyle = dynamicStyle ? dynamicStyle.wrapper : {}
 
     const opacity = this.props.animateOverlayLabelsOpacity
       ? this.interpolateOverlayLabelsOpacity()
       : 1
+    let scale = null;
+
     // Custom - Added by rviera
-    const scale = this.props.animateOverlayLabelsScale && this.interpolateOverlayLabelsScale()
+    scale = this.props.animateOverlayLabelsScale && this.interpolateOverlayLabelsHorizontalScale()
+    
     return [this.props.overlayLabelWrapperStyle, dynamicWrapperStyle, { opacity }, { transform: [{ scale }] }]
   }
 
@@ -698,16 +716,17 @@ class Swiper extends Component {
   }
 
   // Custom - Added by rviera
-  interpolateOverlayLabelsScale = () => {
-    const animatedValueX = Math.abs(this._animatedValueX)
+  interpolateOverlayLabelsHorizontalScale = () => {
+    const animatedValueX = this._animatedValueX;
+    const animatedValueY = this._animatedValueY;
     let scale
 
-    if (animatedValueX <= CENTER_REFERENCE) { // Is swiping right
+    if (animatedValueX > animatedValueY) { // Is swiping right
       scale = this.state.pan.x.interpolate({
         inputRange: this.props.inputOverlayLabelsScaleRight,
         outputRange: this.props.outputOverlayLabelsScaleRight
       })
-    } else if(animatedValueX > CENTER_REFERENCE) { // Is swiping left
+    } else { // Is swiping left
       scale = this.state.pan.x.interpolate({
         inputRange: this.props.inputOverlayLabelsScaleLeft,
         outputRange: this.props.outputOverlayLabelsScaleLeft
@@ -839,6 +858,8 @@ class Swiper extends Component {
       disableTopSwipe,
       overlayLabels
     } = this.props
+    const animatedValueX = this._animatedValueX;
+    const animatedValueY = this._animatedValueY;
 
     const { labelType } = this.state
 
@@ -857,6 +878,18 @@ class Swiper extends Component {
     ) {
       return null
     }
+
+    // Custom - Here we identify the quadrant
+    if (labelType === 'top' || labelType === 'bottom') {
+      if(animatedValueX <= CENTER_REFERENCE) {
+        this.setState({ labelType: 'left', verticalSwipeing: true });
+      } else {
+        this.setState({ labelType: 'right', verticalSwipeing: true });
+      }
+    } else {
+      this.setState({ verticalSwipeing: false });
+    }
+
 
     return (
       <Animated.View style={this.calculateOverlayLabelWrapperStyle()}>
