@@ -61,7 +61,6 @@ class Swiper extends Component {
       slideGesture: false,
       swipeBackXYPositions: [],
       isSwipingBack: false,
-      verticalSwipeing: false,
       ...rebuildStackAnimatedValues(props)
     }
 
@@ -182,24 +181,33 @@ class Swiper extends Component {
       else isSwipingTop = true
     }
 
-    if (isSwipingRight) {
-      this.setState({ labelType: LABEL_TYPES.RIGHT })
-    } else if (isSwipingLeft) {
-      this.setState({ labelType: LABEL_TYPES.LEFT })
-    } else if (isSwipingTop) {
-      this.setState({ labelType: LABEL_TYPES.TOP })
-    } else if (isSwipingBottom) {
-      this.setState({ labelType: LABEL_TYPES.BOTTOM })
-    } else {
+    // custom(justin)
+    const animatedValueX = this._animatedValueX;
+    let newDirection;
+
+    // get new direction
+    if (isSwipingLeft) {
+      newDirection = LABEL_TYPES.LEFT;
+    } else if (isSwipingRight) {
+      newDirection = LABEL_TYPES.RIGHT;
+    } else if (isSwipingTop || isSwipingBottom) {
+      newDirection = animatedValueX > 0 ? LABEL_TYPES.RIGHT : LABEL_TYPES.LEFT;
+    }
+
+    if (newDirection && newDirection !== this.state.labelType) {
+      this.setState({ labelType: newDirection });
+    } else if (!newDirection) {
       this.setState({ labelType: LABEL_TYPES.NONE })
     }
 
     const { onTapCardDeadZone } = this.props
     if (
-      this._animatedValueX < -onTapCardDeadZone ||
-      this._animatedValueX > onTapCardDeadZone ||
-      this._animatedValueY < -onTapCardDeadZone ||
-      this._animatedValueY > onTapCardDeadZone
+      !this.state.slideGesture && (
+        this._animatedValueX < -onTapCardDeadZone ||
+        this._animatedValueX > onTapCardDeadZone ||
+        this._animatedValueY < -onTapCardDeadZone ||
+        this._animatedValueY > onTapCardDeadZone
+      )
     ) {
       this.setState({
         slideGesture: true
@@ -615,7 +623,7 @@ class Swiper extends Component {
   }
 
   calculateOverlayLabelWrapperStyle = () => {
-    const { labelType, verticalSwipeing } = this.state;
+    const { labelType } = this.state;
     const dynamicStyle = this.props.overlayLabels[this.state.labelType].style;
     const dynamicWrapperStyle = dynamicStyle ? dynamicStyle.wrapper : {}
 
@@ -878,18 +886,6 @@ class Swiper extends Component {
     ) {
       return null
     }
-
-    // Custom - Here we identify the quadrant
-    if (labelType === 'top' || labelType === 'bottom') {
-      if(animatedValueX <= CENTER_REFERENCE) {
-        this.setState({ labelType: 'left', verticalSwipeing: true });
-      } else {
-        this.setState({ labelType: 'right', verticalSwipeing: true });
-      }
-    } else {
-      this.setState({ verticalSwipeing: false });
-    }
-
 
     return (
       <Animated.View style={this.calculateOverlayLabelWrapperStyle()}>
