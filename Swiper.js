@@ -214,7 +214,7 @@ class Swiper extends Component {
       })
     }
 
-    return Animated.event([null, this.createAnimatedEvent()], {useNativeDriver: true})(
+    return Animated.event([null, this.createAnimatedEvent()])(
       event,
       gestureState
     )
@@ -448,7 +448,8 @@ class Swiper extends Component {
         x: x * SWIPE_MULTIPLY_FACTOR,
         y: y * SWIPE_MULTIPLY_FACTOR
       },
-      duration: this.props.swipeAnimationDuration
+      duration: this.props.swipeAnimationDuration,
+      useNativeDriver: true,
     }).start(() => {
       this.setSwipeBackCardXY(x, y, () => {
         mustDecrementCardIndex = mustDecrementCardIndex
@@ -811,7 +812,6 @@ class Swiper extends Component {
       <Animated.View
         key={key}
         style={firstCard ? swipableCardStyle : stackCardZoomStyle}
-        useNativeDriver
         {...this._panResponder.panHandlers}
       >
         {firstCard ? renderOverlayLabel : null}
@@ -853,7 +853,7 @@ class Swiper extends Component {
     const key = this.getCardKey(cards[previousCardIndex], previousCardIndex)
 
     return (
-      <Animated.View key={key} style={previousCardStyle} useNativeDriver>
+      <Animated.View key={key} style={previousCardStyle}>
         {previousCard}
       </Animated.View>
     )
@@ -889,7 +889,7 @@ class Swiper extends Component {
     }
 
     return (
-      <Animated.View style={this.calculateOverlayLabelWrapperStyle()} useNativeDriver>
+      <Animated.View style={this.calculateOverlayLabelWrapperStyle()}>
         {!overlayLabels[labelType].element &&
           <Text style={this.calculateOverlayLabelStyle()}>
             {overlayLabels[labelType].title}
