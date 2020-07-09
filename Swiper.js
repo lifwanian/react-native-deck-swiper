@@ -812,6 +812,7 @@ class Swiper extends Component {
       <Animated.View
         key={key}
         style={firstCard ? swipableCardStyle : stackCardZoomStyle}
+        useNativeDriver
         {...this._panResponder.panHandlers}
       >
         {firstCard ? renderOverlayLabel : null}
@@ -853,7 +854,7 @@ class Swiper extends Component {
     const key = this.getCardKey(cards[previousCardIndex], previousCardIndex)
 
     return (
-      <Animated.View key={key} style={previousCardStyle}>
+      <Animated.View key={key} style={previousCardStyle} useNativeDriver>
         {previousCard}
       </Animated.View>
     )
@@ -889,7 +890,7 @@ class Swiper extends Component {
     }
 
     return (
-      <Animated.View style={this.calculateOverlayLabelWrapperStyle()}>
+      <Animated.View style={this.calculateOverlayLabelWrapperStyle()} useNativeDriver>
         {!overlayLabels[labelType].element &&
           <Text style={this.calculateOverlayLabelStyle()}>
             {overlayLabels[labelType].title}
