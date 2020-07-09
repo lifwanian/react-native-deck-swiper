@@ -214,7 +214,7 @@ class Swiper extends Component {
       })
     }
 
-    return Animated.event([null, this.createAnimatedEvent()])(
+    return Animated.event([null, this.createAnimatedEvent()], {useNativeDriver: false})(
       event,
       gestureState
     )
@@ -376,7 +376,8 @@ class Swiper extends Component {
     Animated.spring(this.state.pan, {
       toValue: 0,
       friction: this.props.topCardResetAnimationFriction,
-      tension: this.props.topCardResetAnimationTension
+      tension: this.props.topCardResetAnimationTension,
+      useNativeDriver: false
     }).start(cb)
 
     this.state.pan.setOffset({
@@ -449,7 +450,7 @@ class Swiper extends Component {
         y: y * SWIPE_MULTIPLY_FACTOR
       },
       duration: this.props.swipeAnimationDuration,
-      useNativeDriver: true,
+      useNativeDriver: false,
     }).start(() => {
       this.setSwipeBackCardXY(x, y, () => {
         mustDecrementCardIndex = mustDecrementCardIndex
@@ -812,7 +813,7 @@ class Swiper extends Component {
       <Animated.View
         key={key}
         style={firstCard ? swipableCardStyle : stackCardZoomStyle}
-        useNativeDriver
+        useNativeDriver={false}
         {...this._panResponder.panHandlers}
       >
         {firstCard ? renderOverlayLabel : null}
@@ -854,7 +855,7 @@ class Swiper extends Component {
     const key = this.getCardKey(cards[previousCardIndex], previousCardIndex)
 
     return (
-      <Animated.View key={key} style={previousCardStyle} useNativeDriver>
+      <Animated.View key={key} style={previousCardStyle} useNativeDriver={false}>
         {previousCard}
       </Animated.View>
     )
@@ -890,7 +891,7 @@ class Swiper extends Component {
     }
 
     return (
-      <Animated.View style={this.calculateOverlayLabelWrapperStyle()} useNativeDriver>
+      <Animated.View style={this.calculateOverlayLabelWrapperStyle()} useNativeDriver={false}>
         {!overlayLabels[labelType].element &&
           <Text style={this.calculateOverlayLabelStyle()}>
             {overlayLabels[labelType].title}
